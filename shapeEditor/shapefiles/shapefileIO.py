@@ -3,7 +3,7 @@ import shutil, traceback
 from osgeo import ogr, osr
 from django.contrib.gis.geos.geometry import GEOSGeometry
 from django.http import FileResponse
-
+from django.contrib.gis.gdal import DataSource
 from shapeEditor.shared.models import Shapefile
 from shapeEditor.shared.models import Attribute
 from shapeEditor.shared.models import Feature
@@ -53,9 +53,10 @@ def import_data(shapefile):
     zip.close()
 
     try:
-        driver = ogr.GetDriverByName('ESRI Shapefile')
-        datasource = driver.Open(os.path.join(dir_name,shapefile_name),0)
+        datasource = ogr.Open(os.path.join(dir_name,shapefile_name))
         layer = datasource.GetLayer(0)
+        ds = DataSource(os.path.join(dir_name,shapefile_name))
+        lyr = ds[0]
         shapefile_ok = True
     except:
         traceback.print_exc()
@@ -66,6 +67,7 @@ def import_data(shapefile):
         return "Not a valid shapefile."
 
     src_spatial_ref = layer.GetSpatialRef()
+    print(src_spatial_ref)
     geom_type = layer.GetLayerDefn().GetGeomType()
     geom_name = ogr.GeometryTypeToName(geom_type)
     shapefile = Shapefile(filename=shapefile_name,srs_wkt=src_spatial_ref.ExportToWkt(),geom_type=geom_name)
@@ -78,10 +80,10 @@ def import_data(shapefile):
         attr = Attribute(shapefile=shapefile,name=field_def.GetName(),type=field_def.GetType(),width=field_def.GetWidth(),precision=field_def.GetPrecision())
         attr.save()
         attributes.append(attr)
-    
+
     dst_spatial_ref = osr.SpatialReference()
     dst_spatial_ref.ImportFromEPSG(4326)
-    coord_transform = osr.CoordinateTransformation(src_spatial_ref,dst_spatial_ref)
+    coord_transform = osr.CoordinateTransformation(src_spatial_ref, dst_spatial_ref)
 
     for i in range(layer.GetFeatureCount()):
         src_feature = layer.GetFeature(i)
@@ -89,13 +91,12 @@ def import_data(shapefile):
         src_geometry.Transform(coord_transform)
         geometry = GEOSGeometry(src_geometry.ExportToWkt())
         geometry = utils.wrap_geos_geometry(geometry)       
-    
-    geom_field = utils.calc_geometry_field(geom_name)
-    fields = {}
-    fields['shapefile'] = shapefile
-    fields[geom_field] = geometry
-    feature = Feature(**fields)
-    feature.save()
+        geom_field = utils.calc_geometry_field(geom_name)
+        fields = {}
+        fields['shapefile'] = shapefile
+        fields[geom_field] = geometry
+        feature = Feature(**fields)
+        feature.save()
 
     for attr in attributes:
         success,result = utils.get_ogr_feature_attribute(attr, src_feature)

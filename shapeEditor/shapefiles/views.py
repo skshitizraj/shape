@@ -44,7 +44,7 @@ def export_shapefile(request, shapefile_id):
 def export_json(request):
     try:
         # shapefile = Shapefile.objects.get(id=shapefile_id)
-        shapefile = serialize("geojson", Feature.objects.all())
+        shapefile = serialize("geojson", Feature.objects.all(), geometry_field='geom_multipolygon')
 
     except Shapefile.DoesNotExist:
         raise Http404("No such shapefile")

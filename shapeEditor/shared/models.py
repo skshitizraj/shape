@@ -4,7 +4,6 @@ class Shapefile(models.Model):
     filename = models.CharField(max_length=255)
     srs_wkt = models.TextField()
     geom_type = models.CharField(max_length=50)
-    json = models.FileField(blank=True, null=True)
     def __str__(self):
         return self.filename
 
@@ -29,7 +28,7 @@ class Feature(models.Model):
     geom_geometrycollection = \
         models.GeometryCollectionField(srid=4326,blank=True,null=True)
     def __str__(self):
-        return str(self.id)
+        return str(self.shapefile)
 
 class AttributeValue(models.Model):
     feature = models.ForeignKey(Feature, on_delete=models.CASCADE)
