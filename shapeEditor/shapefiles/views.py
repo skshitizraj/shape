@@ -48,7 +48,6 @@ def export_json(request):
 
     except Shapefile.DoesNotExist:
         raise Http404("No such shapefile")
-
     return HttpResponse(shapefile, content_type='json')
 
 

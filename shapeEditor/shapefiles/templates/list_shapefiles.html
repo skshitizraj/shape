@@ -20,7 +20,7 @@
     ></script>
     <script type="text/javascript">
       function our_layers(map, options) {
-        var marker = L.marker([27.7172, 85.324]).addTo(map);
+        var marker = L.marker([27.7172, 85.324]).addTo(map).bindPopup("Kathmandu");
         var circle = L.circle([27.7172, 85.324], {
           color: "red",
           fillColor: "#f03",
@@ -28,11 +28,20 @@
           radius: 5000
         }).addTo(map);
         var show = new L.GeoJSON.AJAX("{% url 'json_data' %}", {
-          dataType: "json"
+          onEachFeature: function(feature,layer){
+            layer.bindPopup(feature.properties.name.toString());
+          }
         });
         show.addTo(map);
         // var datasets = new L.GeoJSON.AJAX("/static/dist/province2.geojson");
         // datasets.addTo(map);
+        var baseMaps = {
+          "marker":marker
+        };
+        var overlayMaps = {
+          "ownmap": show
+        };
+        L.control.layers(baseMaps, overlayMaps).addTo(map);
       }
     </script>
   </head>

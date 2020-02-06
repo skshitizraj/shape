@@ -88,12 +88,13 @@ def import_data(shapefile):
     for i in range(layer.GetFeatureCount()):
         src_feature = layer.GetFeature(i)
         src_geometry = src_feature.GetGeometryRef()
-        src_geometry.Transform(coord_transform)
+        # src_geometry.Transform(coord_transform)
         geometry = GEOSGeometry(src_geometry.ExportToWkt())
         geometry = utils.wrap_geos_geometry(geometry)       
         geom_field = utils.calc_geometry_field(geom_name)
         fields = {}
         fields['shapefile'] = shapefile
+        fields['name'] = 'GAPA_NAPA'
         fields[geom_field] = geometry
         feature = Feature(**fields)
         feature.save()

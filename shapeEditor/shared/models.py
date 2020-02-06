@@ -18,6 +18,7 @@ class Attribute(models.Model):
 
 class Feature(models.Model):
     shapefile = models.ForeignKey(Shapefile, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255,blank=True, null=True)
     geom_point = models.PointField(srid=4326,blank=True, null=True)
     geom_multipoint = \
         models.MultiPointField(srid=4326,blank=True, null=True)
